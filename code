@@ -1,0 +1,35 @@
+{
+  
+  host_t        myhost = mach_host_self_(); // host self is host priv if you're root anyway..
+  task_port_t   psDefault;
+  task_port_t   psDefault_control;
+
+  task_array_t  tasks;
+  mach_msg_type_number_t numTasks;
+  int i;
+
+   thread_array_t       threads;
+   thread_info_data_t   tInfo;
+
+  kern_return_t kr;
+
+  kr = processor_set_default_(myhost, &psDefault);
+
+  kr = host_processor_set_priv_(myhost, psDefault, &psDefault_control);
+ if (kr != KERN_SUCCESS) { NSLog(@"host_processor_set_priv failed with error %x\n", kr);
+         mach_error("host_processor_set_priv",kr); exit(1);}
+
+
+  kr = processor_set_tasks_(psDefault_control, &tasks, &numTasks);
+  if (kr != KERN_SUCCESS) { NSLog(@"processor_set_tasks failed with error %x\n",kr); exit(1); }
+
+  for (i = 0; i < numTasks; i++)
+        {
+                int pid;
+                pid_for_task_(tasks[i], &pid);
+                NSLog(@"TASK %d PID :%d\n", i,pid);
+                if (pid == Pid) return (tasks[i]);
+        }
+
+   return (MACH_PORT_NULL);
+} // end workaround
